@@ -1,18 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Button,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import Entypo from "@expo/vector-icons/Entypo";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
+import GoalItem from "./components/GoalItem";
+import GoalInput from "./components/GoalInput";
+import ClearAllButton from "./components/ClearAllButton";
 
 const styles = StyleSheet.create({
   appContainer: {
@@ -20,25 +14,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  inputContainer: {
-    flex: 1,
-    borderRadius: 50,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    alignItems: "center",
-    borderColor: "#ccccc",
-  },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: 50,
-    paddingHorizontal: 10,
-    borderColor: "#ccccc",
-    width: "80%",
-    marginRight: 8,
-    padding: 8,
-  },
+
   goalsContainer: {
     flex: 3,
   },
@@ -46,33 +22,31 @@ const styles = StyleSheet.create({
     fontSize: 23,
     marginBottom: 10,
   },
-  goalStyle: {
-    alignItems: "center",
-    borderRadius: 10,
-    backgroundColor: "#DDDDDD",
-    padding: 15,
-    marginVertical: 3,
-  },
 });
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 export default function App() {
-  const [goal, setGoal] = useState("");
-
-  const [goalsList, setGoalsList] = useState([]);
-
-  // get the value from the input and set it to goal variable
-  const onChangeHandler = (enteredGoal) => {
-    setGoal(enteredGoal);
-  };
+  const [goalsList, setGoalsList] = useState([
+    { id: "23123", text: "todoitem" },
+    { id: "2324", text: "another item" },
+  ]);
 
   // onpress evennt to log the goal on console
-  const addGoal = () => {
-    const newGoal = { key: Date.now().toString(), text: goal };
+  const addGoalHandler = (goalText) => {
+    const newGoal = { id: Date.now().toString(), text: goalText };
     setGoalsList((currentGoals) => [...currentGoals, newGoal]);
-    setGoal("");
   };
+
+  function clearAll() {
+    setGoalsList([]);
+  }
+
+  function deleteItemHandler(id) {
+    setGoalsList((currentGoals) => {
+      return currentGoals.filter((goal) => goal.id !== id);
+    });
+  }
 
   // splash logic
   const [appIsReady, setAppIsReady] = useState(false);
@@ -112,27 +86,21 @@ export default function App() {
 
   return (
     <View style={styles.appContainer} onLayout={onLayoutRootView}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Write your goals here !"
-          value={goal}
-          onChangeText={onChangeHandler}
-        />
-        <Button title="Add Note" onPress={addGoal} color="#023047" />
-      </View>
+      <GoalInput onAddGoal={addGoalHandler} />
       <View style={styles.goalsContainer}>
+        <ClearAllButton onClear={clearAll} />
         <Text style={styles.textHeader}>List of goals : </Text>
         <FlatList
           data={goalsList}
-          keyExtractor={(item, index) => item.key}
+          keyExtractor={(item, index) => item.id}
           renderItem={(itemData) => (
-            <View>
-              <TouchableOpacity style={styles.goalStyle}>
-                <Text>{itemData.item.text}</Text>
-              </TouchableOpacity>
-            </View>
+            <GoalItem
+              text={itemData.item.text}
+              onDelete={deleteItemHandler}
+              id={itemData.item.id}
+            />
           )}
+          alwaysBounceVertical={false}
         />
       </View>
       <StatusBar style="auto" />
